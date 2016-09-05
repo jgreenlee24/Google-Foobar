@@ -6,7 +6,7 @@ public class Answer {
     public static void main(String[] args){
         String[] example = {"z", "yx", "yz"};
         String a = answer(example);
-        System.out.println(a);
+        System.out.println("sol: " + a);
     }
 
     public static HashSet<Character> recurseMap(Map<Character, HashSet<Character>> map, Character key) {
@@ -24,36 +24,33 @@ public class Answer {
         }
     }
 
+    public static String cleanString(Collection<Character> col) {
+        return col.toString()
+            .replace(",", "")  //remove the commas
+            .replace("[", "")  //remove the right bracket
+            .replace("]", "")  //remove the left bracket
+            .replace(" ", ""); // remove spaces
+    }
+
     public static String answer(String[] words) {
         // get length of longest string
         int max = 0;
 
-        // create setc - list of all distinct characters &
-        // create setf - list of distinct first characters
+        // create setc - list of all distinct characters
         HashSet<Character> setc = new HashSet<Character>();
-        LinkedHashSet<Character> setf = new LinkedHashSet<Character>();
         for (String w : words) {
 
             // store longest length
             if (w.length() > max) max = w.length();
 
-            // get all distinct characters for first index
-            setf.add(w.charAt(0));
-
+            // add each distinct character to character set
             for (char c : w.toCharArray()) {
-                // add each distinct character to character set
                 setc.add(c);
             }
         }
 
         // string of all distinct characters in words array
-        String chars = setc.toString()
-            .replace(",", "")  //remove the commas
-            .replace("[", "")  //remove the right bracket
-            .replace("]", "")  //remove the left bracket
-            .replace(" ", ""); // remove spaces
-        System.out.println(chars);
-        System.out.println(chars.length());
+        String chars = cleanString(setc);
 
         // create initial hashmap
         HashMap<Character, HashSet<Character>> mapc = new HashMap<Character, HashSet<Character>>();
@@ -78,7 +75,7 @@ public class Answer {
                     if (prevWord == "" || w.charAt(i) != prevWord.charAt(i)) {
                         // add current character to every previous character's hashset
                         if (prevChars.get(curSubstring) != null) {
-                            for (Character prevch : prevChars.get(curSubstring).toCharArray()) {
+                             for (Character prevch : prevChars.get(curSubstring).toCharArray()) {
                                 if (mapc.get(prevch) != null) {
                                     mapc.get(prevch).add(w.charAt(i));
                                 }
@@ -112,13 +109,13 @@ public class Answer {
                 HashSet<Character> retset = new HashSet<Character>();
                 retset.add(entry.getKey());
                 retset.addAll(recurseMap(mapc, val));
-                // System.out.println(entry.getKey() + ": " + retset);
-                mapf.put(entry.getKestatuy(), retset);
+                mapf.put(entry.getKey(), retset);
             }
         }
 
-        System.out.println(mapc);
-        System.out.println(mapf);
+        // Logging: logs initial map & final map to check recurse function
+        System.out.println("ini: " + mapc);
+        System.out.println("fin: " + mapf);
 
         // create indexed array from map using set length as index
         for (Map.Entry<Character, HashSet<Character>> entry : mapf.entrySet()) {
