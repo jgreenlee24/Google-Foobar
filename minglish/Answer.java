@@ -1,7 +1,6 @@
 // package com.google.challenges;
-import java.util.*;
-import java.util.stream.Collectors;
 import java.lang.*;
+import java.util.*;
 
 public class Answer {
     public static void main(String[] args){
@@ -10,45 +9,129 @@ public class Answer {
         System.out.println(a);
     }
 
+    public static HashSet<Character> recurseMap(Map<Character, HashSet<Character>> map, Character key) {
+        if (map.get(key).size() == 0) return new HashSet<Character>();
+        else {
+            // initialize new set with old values
+            HashSet<Character> retset = new HashSet<Character>();
+            retset.addAll(map.get(key));
+
+            // recurse for new values to add to new set
+            for (Character val : map.get(key)) {
+                retset.addAll(recurseMap(map, val));
+            }
+            return retset;
+        }
+    }
+
     public static String answer(String[] words) {
-        // input: words - list of ordered words using Minglish ordering
-        String output = "";
-        // using LinkedHashSet to remove duplicates & preserve insert order
-        LinkedHashSet<Character> hset = new LinkedHashSet<Character>();
-        // add all first letters to hashset
-        hset.addAll(Arrays.stream(words).map(s -> s.charAt(0)).collect(Collectors.toList()));
-        if (hset.size() == 26) return hset.toString();
+        // get length of longest string
+        int max = 0;
 
+        // create setc - list of all distinct characters &
+        // create setf - list of distinct first characters
+        HashSet<Character> setc = new HashSet<Character>();
+        LinkedHashSet<Character> setf = new LinkedHashSet<Character>();
+        for (String w : words) {
 
+            // store longest length
+            if (w.length() > max) max = w.length();
 
+            // get all distinct characters for first index
+            setf.add(w.charAt(0));
 
+            for (char c : w.toCharArray()) {
+                // add each distinct character to character set
+                setc.add(c);
+            }
+        }
 
-        // rules version: loop
-        // same loop idea, but add unsorted characters and their relationships
-        // to the storage hashmaps & arrays.
-        // Basically check to see if we can add each character on encounter to output
-        // if not, add to the other stuff. 
-        Hashmap gt = new Hashmap(); // <char, ArrayList> - greater than storage
-        Hashmap lt = new Hashmap(); // <char, ArrayList> - less than storage
-        ArrayList us = new ArrayList(); // <char> - unsorted storage
-        String word1 = "";
-        String word2 = "";
+        // string of all distinct characters in words array
+        String chars = setc.toString()
+            .replace(",", "")  //remove the commas
+            .replace("[", "")  //remove the right bracket
+            .replace("]", "")  //remove the left bracket
+            .replace(" ", ""); // remove spaces
+        System.out.println(chars);
+        System.out.println(chars.length());
 
-        // loop version (without rules system): loop
-        // 2 words at a time; compare characters at same index; when one's length is reached, move on
-        // taking second word and comparing with the next word in the array
-        // in the comparison, five possibilities:
-            // a.) characters are the same, ignore; increment index; repeat
-            // b.) else if first char only is in array: insert 2nd char in front of first in array
-            // c.) else if second char only is in array: insert 1st char before 2nd in array
-            // d.) else if both are in array: check order;
-                    // moving the characters could cause a problem with previous ordering.. (exception!!)
-            // e.) else (neither character in array): do something, maybe just append both? ....... (exception!!)
+        // create initial hashmap
+        HashMap<Character, HashSet<Character>> mapc = new HashMap<Character, HashSet<Character>>();
+        for (char c : chars.toCharArray()) {
+            mapc.put(c, new HashSet<Character>());
+        }
+        // map<substring, previous characters>
+        HashMap<String, String> prevChars = new HashMap<String, String>();
 
-        // lesson learned: only add letters to the array when we know their relationship
-        //                 with 2 absolute, adjacent characters in the array
+        // loop variables
+        String prevWord = "";
+        String curSubstring = "";
 
-        // output: ordered list of distinct letters as a single string
-        return output;
+        // loop and add next characters to after set
+        for (String w : words) {
+            int i = 0;
+            for (Character c : w.toCharArray()) {
+
+                // check substring of previous word with this word
+                if (prevWord.length() >= i && curSubstring.equals(prevWord.substring(0,i))){
+                    // make sure characters are different
+                    if (prevWord == "" || w.charAt(i) != prevWord.charAt(i)) {
+                        // add current character to every previous character's hashset
+                        if (prevChars.get(curSubstring) != null) {
+                            for (Character prevch : prevChars.get(curSubstring).toCharArray()) {
+                                if (mapc.get(prevch) != null) {
+                                    mapc.get(prevch).add(w.charAt(i));
+                                }
+                            }
+                        }
+                    }
+                }
+                // append current character to map's value for that substring
+                prevChars.put(curSubstring, prevChars.get(curSubstring) + c);
+                curSubstring += c;
+                i++;
+            }
+            curSubstring = "";
+            prevWord = w;
+        }
+
+        // create return string from mapc's hashset size (indices for return string)
+        ArrayList<Character> arr = new ArrayList<Character>();
+        for (int i = 0; i < chars.length(); i++) {
+            arr.add('a'); // initial value
+        }
+
+        // initialize new HashSet with previous values
+        HashMap<Character, HashSet<Character>> mapf =
+            new HashMap<Character, HashSet<Character>>(mapc);
+
+        // combine hashsets into a final map
+        for (Map.Entry<Character, HashSet<Character>> entry : mapc.entrySet()) {
+            // recurse for adding other character's values to the new set
+            for (Character val : entry.getValue()) {
+                HashSet<Character> retset = new HashSet<Character>();
+                retset.add(entry.getKey());
+                retset.addAll(recurseMap(mapc, val));
+                // System.out.println(entry.getKey() + ": " + retset);
+                mapf.put(entry.getKestatuy(), retset);
+            }
+        }
+
+        System.out.println(mapc);
+        System.out.println(mapf);
+
+        // create indexed array from map using set length as index
+        for (Map.Entry<Character, HashSet<Character>> entry : mapf.entrySet()) {
+            arr.set(entry.getValue().size(), entry.getKey());
+        }
+
+        // reverse array
+        Collections.reverse(arr);
+
+        return arr.toString()
+            .replace(",", "")  //remove the commas
+            .replace("[", "")  //remove the right bracket
+            .replace("]", "")  //remove the left bracket
+            .replace(" ", ""); // remove spaces
     }
 }
